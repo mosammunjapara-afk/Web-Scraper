@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scraping Results</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.3);
+            max-width: 1000px;
+            margin: 0 auto;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #e2e8f0;
+        }
+
+        h2 {
+            color: #2d3748;
+            font-size: 2em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .success-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+
+        .url-display {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            padding: 15px 20px;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 10px;
+        }
+
+        .url-display b {
+            color: #667eea;
+            word-break: break-all;
+            font-size: 1.05em;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #ff6b6b15 0%, #ee5a6f15 100%);
+            color: #e53e3e;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 4px solid #e53e3e;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .section {
+            margin-top: 35px;
+            animation: slideIn 0.6s ease-out backwards;
+        }
+
+        .section:nth-child(2) { animation-delay: 0.1s; }
+        .section:nth-child(3) { animation-delay: 0.2s; }
+        .section:nth-child(4) { animation-delay: 0.3s; }
+        .section:nth-child(5) { animation-delay: 0.4s; }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        h3 {
+            color: #2d3748;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .icon {
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .title-box {
+            background: linear-gradient(135deg, #f093fb15 0%, #f5576c15 100%);
+            padding: 15px 20px;
+            border-radius: 12px;
+            border-left: 4px solid #f5576c;
+            margin-top: 10px;
+        }
+
+        .title-box p {
+            color: #2d3748;
+            font-size: 1.15em;
+            font-weight: 600;
+        }
+
+        ul {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+        ul li {
+            background: #f7fafc;
+            margin-bottom: 12px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #2d3748;
+            line-height: 1.6;
+            word-wrap: break-word;
+            position: relative;
+            overflow: hidden;
+        }
+
+        ul li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #667eea15, transparent);
+            transition: width 0.3s ease;
+        }
+
+        ul li:hover::before {
+            width: 100%;
+        }
+
+        ul li:hover {
+            background: #edf2f7;
+            transform: translateX(8px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .count-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #e2e8f0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.05em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(67, 233, 123, 0.4);
+        }
+
+        .btn-download:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(67, 233, 123, 0.5);
+        }
+
+        .btn-back {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-back:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 0.95em;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+
+            h2 {
+                font-size: 1.5em;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>
+                <span class="success-icon">✓</span>
+                Scraping Complete!
+            </h2>
+            <div class="url-display">
+                <b>{{ url }}</b>
+            </div>
+        </div>
+
+        {% if data.error %}
+            <div class="error-message">
+                ⚠️ Error: {{ data.error }}
+            </div>
+        {% else %}
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">{{ data.headings|length }}</div>
+                <div class="stat-label">Headings Found</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ data.paragraphs|length }}</div>
+                <div class="stat-label">Paragraphs</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ data.links|length }}</div>
+                <div class="stat-label">Links</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>
+                <span class="icon">📌</span>
+                Page Title
+            </h3>
+            <div class="title-box">
+                <p>{{ data.title }}</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>
+                <span class="icon">📋</span>
+                Headings
+                <span class="count-badge">{{ data.headings|length }}</span>
+            </h3>
+            <ul>
+                {% for h in data.headings %}
+                    <li>{{ h }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="section">
+            <h3>
+                <span class="icon">📝</span>
+                Paragraphs
+                <span class="count-badge">{{ data.paragraphs|length }}</span>
+            </h3>
+            <ul>
+                {% for p in data.paragraphs %}
+                    <li>{{ p }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="section">
+            <h3>
+                <span class="icon">🔗</span>
+                Links
+                <span class="count-badge">{{ data.links|length }}</span>
+            </h3>
+            <ul>
+                {% for link in data.links %}
+                    <li>{{ link }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="action-buttons">
+            <a href="/download" class="btn btn-download">
+                💾 Download JSON
+            </a>
+            <a href="/" class="btn btn-back">
+                🔄 Scrape Another
+            </a>
+        </div>
+
+        {% endif %}
+    </div>
+</body>
+</html>
